@@ -1,3 +1,69 @@
+# Pairing System
+
+This project is a mentor-mentee pairing and email automation system with a React/Next.js frontend and a FastAPI backend.
+
+## Backend (FastAPI)
+
+### Setup
+1. Install Python 3.10+.
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Place your `mentors.xlsx` and `mentees.xlsx` files in the project root.
+
+### Run the Backend
+1. Start the FastAPI server:
+   ```bash
+   uvicorn api:app --reload
+   ```
+2. The API will be available at `http://localhost:8000`.
+
+## Frontend (Next.js)
+
+### Setup
+1. Install Node.js (v18+ recommended).
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+### Run the Frontend
+1. Start the Next.js development server:
+   ```bash
+   npm run dev
+   ```
+2. The app will be available at `http://localhost:3000`.
+
+## Usage
+1. Step 1: Run the pairing algorithm from the dashboard.
+2. Step 2: Generate email templates.
+3. Step 3: Send emails (requires Outlook on Windows).
+
+## Important Generated Files
+
+- **pairings_export.xlsx**: This Excel file is automatically created after running the pairing algorithm (Step 1). It contains:
+  - `Pairings` sheet: All mentor-mentee pairs, including matched subjects and contact details.
+  - `Unpaired_Mentors` sheet: Mentors who were not matched to any mentee.
+  - `Unpaired_Mentees` sheet: Mentees who were not matched to any mentor.
+  - You can manually review or update pairings here before generating emails.
+
+- **emails/** directory: This folder is created after generating email templates (Step 2). It contains:
+  - One subfolder per mentor, named after the mentor's full name.
+  - Each mentor folder contains:
+    - `mentor_details.json`: Mentor's details.
+    - `mentees_details/`: A folder with one JSON file per mentee, containing their details.
+    - One `.txt` file per mentor-mentee pair, containing the email template for that mentee.
+  - You can review or edit email templates here before sending.
+
+## Notes
+- Ensure your Excel files have the correct columns as expected by the backend.
+- Email sending uses Outlook via `pywin32` and only works on Windows.
+- API endpoints:
+  - `/pair` (POST): Runs the pairing algorithm.
+  - `/generate-emails` (POST): Generates email templates.
+  - `/send-emails` (POST): Sends emails via Outlook.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

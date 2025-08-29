@@ -48,3 +48,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+mentors.xlsx
+mentees.xlsx
+pairings_export.xlsx
