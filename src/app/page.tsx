@@ -33,15 +33,20 @@ export default function Home() {
   return (
     <div className="dark min-h-screen flex flex-col items-center justify-center bg-gray-900 p-8">
       <h1 className="text-3xl font-bold mb-8 text-gray-100">Pairing System Dashboard</h1>
-      <div className="flex flex-col md:flex-row gap-8 w-full max-w-6xl justify-center">
-        <div className="flex-1 min-w-[350px] md:min-w-[400px] lg:min-w-[500px]">
-          <PairingSection />
-        </div>
-        <div className="flex-1 min-w-[350px] md:min-w-[400px] lg:min-w-[500px]">
-          <EmailSection emails={emails} onGenerateEmails={handleGenerateEmails} />
-        </div>
-        <div className="flex-1 min-w-[350px] md:min-w-[400px] lg:min-w-[500px]">
-          <SendSection sendResult={sendResult} onSendEmails={handleSendEmails} />
+      <div className="w-full max-w-6xl">
+        <div className="bg-gray-800 rounded-lg shadow p-8 flex flex-col items-center w-full">
+          <div className="w-full mb-8">
+            <h2 className="text-2xl font-bold text-blue-400 mb-4">Step 1: Run Pairing Algorithm</h2>
+            <PairingSection />
+          </div>
+          <div className="w-full mb-8">
+            <h2 className="text-2xl font-bold text-green-400 mb-4">Step 2: Generate Email Templates</h2>
+            <EmailSection />
+          </div>
+          <div className="w-full">
+            <h2 className="text-2xl font-bold text-purple-400 mb-4">Step 3: Send Emails</h2>
+            <SendSection sendResult={sendResult} onSendEmails={handleSendEmails} />
+          </div>
         </div>
       </div>
     </div>

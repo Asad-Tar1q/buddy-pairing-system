@@ -191,8 +191,51 @@ def pair_mentors_mentees(
         "unpaired_mentees": json_unpaired_mentee_data
     }
 
+
 @app.post("/generate-emails")
 def generate_emails_api():
+    # Run the email generation logic
     generate_emails()
-    return {"message": "Emails generated."}
+
+    # Collect all generated emails from the emails/ directory
+    emails_dir = os.path.join(os.getcwd(), "emails")
+    email_entries = []
+    for mentor_folder in os.listdir(emails_dir):
+        mentor_path = os.path.join(emails_dir, mentor_folder)
+        if not os.path.isdir(mentor_path):
+            continue
+        # Mentor details
+        mentor_details_path = os.path.join(mentor_path, "mentor_details.json")
+        if not os.path.exists(mentor_details_path):
+            continue
+        with open(mentor_details_path, "r") as f:
+            mentor = json.load(f)
+
+        # Mentee details
+        mentee_details_dir = os.path.join(mentor_path, "mentees_details")
+        for json_file in os.listdir(mentee_details_dir):
+            if json_file.endswith('.json'):
+                json_path = os.path.join(mentee_details_dir, json_file)
+                with open(json_path, "r") as jf:
+                    mentee = json.load(jf)
+                mentee_full_name = mentee.get('full_name', '').replace(' ', '_')
+                txt_filename = f"{mentor_folder}_{mentee_full_name}.txt"
+                mentee_email_path = os.path.join(mentor_path, txt_filename)
+                if os.path.exists(mentee_email_path):
+                    with open(mentee_email_path, "r") as f:
+                        body = f.read()
+                    email_entries.append({
+                        "mentor": {
+                            "full_name": mentor.get("full_name"),
+                            "short_code": mentor.get("short_code"),
+                            "email": mentor.get("short_code", "") + "@ic.ac.uk" if mentor.get("short_code") else ""
+                        },
+                        "mentee": {
+                            "full_name": mentee.get("full_name"),
+                            "email": mentee.get("email")
+                        },
+                        "content": body
+                    })
+
+    return {"emails": email_entries}
 

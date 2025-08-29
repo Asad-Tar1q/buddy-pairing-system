@@ -123,9 +123,9 @@ const PairingSection: React.FC = () => {
                     <div className="text-gray-400 text-xs mb-2"><span className="font-semibold">Phone:</span> {pairing.mentor.phone_number}</div>
                   </div>
                   <div className="font-semibold text-green-300 mt-2 mb-1">Mentees:</div>
-
+                  <div className="ml-8 flex flex-col gap-2">
                     {pairing.mentees.map((mentee: Mentee, j: number) => (
-                      <li key={j} className="bg-gray-800 rounded p-3 mb-2 w-full">
+                      <div key={j} className="bg-gray-800 rounded p-3 w-full">
                         <div className="font-bold text-gray-100">{mentee.full_name}</div>
                         <div className="ml-4">
                           <div className="text-gray-300 text-xs mb-1"><span className="font-semibold">Email:</span> {mentee.email}</div>
@@ -134,9 +134,9 @@ const PairingSection: React.FC = () => {
                           <div className="text-gray-300 text-xs mb-1"><span className="font-semibold">Phone:</span> {mentee.phone_number}</div>
                           <div className="text-gray-300 text-xs mb-1"><span className="font-semibold">Advice:</span> {mentee.areas_of_advice}</div>
                         </div>
-                      </li>
+                      </div>
                     ))}
-
+                  </div>
                 </li>
               ))}
             </ul>
