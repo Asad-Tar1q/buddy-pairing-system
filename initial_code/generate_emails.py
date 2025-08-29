@@ -8,7 +8,7 @@ first_name = lambda ment__: ment__['full_name'].split()[0].strip().capitalize()
 
 def mentor_email(mentor):
     if re.match(r'^[a-zA-Z]{2,}[0-9]{2,}$', mentor['short_code']):
-        return f"{mentor['short_code']}.ic.ac.uk"
+        return f"{mentor['short_code']}@ic.ac.uk"
     elif re.match(r'.*@[ic|imperial].ac.uk$', mentor['short_code']):
         return mentor['short_code']
     else:

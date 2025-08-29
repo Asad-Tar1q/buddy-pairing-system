@@ -25,6 +25,7 @@ interface EmailData {
 }
 
 const EmailSection: React.FC = () => {
+  const [expandedEmails, setExpandedEmails] = useState<{ [key: string]: boolean }>({});
   const [emails, setEmails] = useState<EmailEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,7 +87,7 @@ const EmailSection: React.FC = () => {
             <div className="text-gray-500">No emails generated yet.</div>
           ) : (
             <ul className="space-y-8">
-              {Object.values(groupedEmails).map((group, i) => (
+              {Object.entries(groupedEmails).map(([key, group], i) => (
                 <li key={i} className="bg-gray-700 rounded p-4 w-full">
                   <div className="font-bold text-green-200 text-lg mb-2">Mentor: {group.mentor.full_name}</div>
                   <div className="text-gray-300 text-xs mb-2"><span className="font-semibold">Mentor Email:</span> {group.mentor.email}</div>
@@ -95,9 +96,19 @@ const EmailSection: React.FC = () => {
                       <li key={j} className="bg-gray-800 rounded p-3 w-full">
                         <div className="font-bold text-gray-100">To: {email.mentee.full_name}</div>
                         <div className="text-gray-300 text-xs mb-1"><span className="font-semibold">Mentee Email:</span> {email.mentee.email}</div>
-                        <div className="text-gray-300 text-sm mb-1 mt-2">
-                          {email.content.slice(0, 200)}{email.content.length > 200 ? "..." : ""}
+                        <div className="text-gray-300 text-sm mb-1 mt-2 whitespace-pre-line">
+                          {expandedEmails[`${group.mentor.email}_${j}`]
+                            ? email.content
+                            : <>{email.content.slice(0, 200)}{email.content.length > 200 ? "..." : ""}</>}
                         </div>
+                        {email.content.length > 200 && (
+                          <button
+                            className="text-green-400 underline text-xs mt-2"
+                            onClick={() => setExpandedEmails(prev => ({ ...prev, [`${group.mentor.email}_${j}`]: !prev[`${group.mentor.email}_${j}`] }))}
+                          >
+                            {expandedEmails[`${group.mentor.email}_${j}`] ? "Show less" : "Show more"}
+                          </button>
+                        )}
                       </li>
                     ))}
                   </ul>

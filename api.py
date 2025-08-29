@@ -113,16 +113,14 @@ def send_emails():
 
 # This endpoint performs the full pairing process as in the main block of auto_pairer copy.py
 @app.post("/pair")
-def pair_mentors_mentees(
-    mentee_form_name: str = "mentee_test",
-    mentor_form_name: str = "mentor_test"
-):
-    # Use mentors.xlsx directly
-    spreadsheet_path = "mentors.xlsx"
+def pair_mentors_mentees():
+    # Use mentors.xlsx and mentees.xlsx directly
+    mentors_path = "mentors.xlsx"
+    mentees_path = "mentees.xlsx"
 
-    # Run pairing logic
+    # Load the mentor and mentee dataframes
     mentor_df, mentee_df = get_mentor_mentee_dfs(
-        spreadsheet_path, mentee_form_name, mentor_form_name
+        mentors_path, mentees_path
     )
     make_csvs(mentor_df, mentee_df)
 

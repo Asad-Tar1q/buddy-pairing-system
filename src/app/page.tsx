@@ -14,20 +14,24 @@ export default function Home() {
   const [sendResult, setSendResult] = useState<string>("");
   // Always use dark mode
 
-  // Dummy handlers for demonstration
-  const handleRunPairing = () => {
-    setPairings(["Mentor A - Mentee 1", "Mentor B - Mentee 2"]);
-  };
-  const handleGenerateEmails = () => {
-    setEmails([
-      "Email to Mentor A: ...",
-      "Email to Mentor B: ...",
-      "Email to Mentee 1: ...",
-      "Email to Mentee 2: ...",
-    ]);
-  };
-  const handleSendEmails = () => {
-    setSendResult("Emails sent successfully!");
+  // Real handler for sending emails
+  const handleSendEmails = async () => {
+    setSendResult("Sending emails...");
+    try {
+      const hostUrl = process.env.NEXT_PUBLIC_HOST_URL || "http://localhost:8000";
+      const res = await fetch(`${hostUrl}/send-emails`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({})
+      });
+      if (!res.ok) throw new Error("Failed to send emails");
+      const data = await res.json();
+      setSendResult(data.message || "No message returned.");
+    } catch (err: any) {
+      setSendResult(err.message || "Unknown error");
+    }
   };
 
   return (

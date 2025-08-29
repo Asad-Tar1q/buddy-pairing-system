@@ -7,16 +7,17 @@ import os
 
 class Mentor:
     def __init__(self, row):
-        self.timestamp = row.Timestamp
-        self.full_name = row.What_is_your_full_name
-        self.gender = row.Are_you_a_brother_or_sister
-        self.short_code = row.What_is_your_Imperial_shortcode
-        self.phone_number = row.What_is_your_phone_number
-        self.course = row.What_course_do_you_study
-        self.year = row.What_year_of_study_are_you_in
-        self.mentorship_type = row.What_form_of_mentorship_are_you_able_to_provide
-        self.max_students = 6 if row.How_many_students_are_you_able_to_mentor == '5+' else int(row.How_many_students_are_you_able_to_mentor)
-        self.current_students = row.current_student_numbers
+        self.full_name = getattr(row, 'What_is_your_full_name', None)
+        self.gender = getattr(row, 'Are_you_a_brother_or_a_sister', None)
+        self.short_code = getattr(row, 'Please_enter_your_Imperial_shortcode', None)
+        self.phone_number = getattr(row, 'Please_enter_your_phone_number', None)
+        self.course = getattr(row, 'What_course_are_you_studying', None)
+        # Also store lowercased version for easier matching
+        self.course_lower = self.course.lower() if self.course else ""
+        self.year = getattr(row, 'What_year_of_study_are_you_in', None)
+        self.stem_muslims_mentor_before = getattr(row, 'Have_you_been_a_STEM_Muslims_Mentor_before', None)
+        self.max_students = 6 if getattr(row, 'How_many_students_are_you_able_to_mentor', None) in ['5+', '6'] else int(getattr(row, 'How_many_students_are_you_able_to_mentor', 0))
+        self.current_students = getattr(row, 'current_student_numbers', 0)
             
     def __lt__(self, other):
         return (
@@ -27,25 +28,23 @@ class Mentor:
 
 class Mentee:
     def __init__(self, row) -> None:
-        self.full_name = row.What_is_your_full_name
-        self.email = row.What_is_your_email_address
-        self.a_levels = row.What_A_Levels_are_you_currently_taking
+        self.full_name = getattr(row, 'What_is_your_full_name', None)
+        self.gender = getattr(row, 'Are_you_a_brother_or_a_sister', None)
+        self.email = getattr(row, 'Please_enter_your_email', None)
+        self.phone_number = getattr(row, 'Please_enter_your_phone_number', None)
+        self.current_study_place = getattr(row, 'Where_are_you_currently_studying', None)
+        self.a_levels = getattr(row, 'What_Alevels_are_you_currently_studying', None)
         try:
-            self.interested_subjects = [
-                item.strip()
-                for item in row.What_are_you_interested_in_studying_at_university_Select_all_that_you_may_be_interested_in.split(
-                    ","
-                )
-            ]
-        except:
+            raw_subjects = getattr(row, 'What_subjects_courses_are_you_interested_in_studying_at_university', '')
+            # Split on both semicolons and commas
+            import re
+            self.interested_subjects = [item.strip() for item in re.split(r"[;,]", raw_subjects) if item.strip()]
+        except Exception as e:
+            print(f"Error parsing interested_subjects for mentee {self.full_name}: {e}")
             self.interested_subjects = None
-        self.gender = row.Are_you_a_brother_or_sister
-        self.phone_number = row.What_is_your_phone_number
-        self.why_interested = (
-            row.Why_are_you_interested_in_studying_this_subject_23_sentences
-        )
-        self.areas_of_advice = row.Which_areas_are_you_looking_for_advice_with
-        self.is_year13 = row.Are_you_a_year_13_student_intending_to_apply_to_Imperial
+        self.why_interested = getattr(row, 'Why_are_you_interested_in_studying_this_subject_field', None)
+        self.areas_of_advice = getattr(row, 'What_areas_of_the_UCAS_process_are_you_looking_for_advice_with', None)
+        self.considering_imperial = getattr(row, 'Are_you_considering_applying_to_Imperial', None)
 
 
 class MentorList:
@@ -61,20 +60,26 @@ class MentorList:
 
         for mentor, mentors_mentees in self.mentor_pairings:
             try:
+                matched_subject = None
+                for subj in mentee.interested_subjects:
+                    if subj and subj.lower() in (mentor.course_lower if mentor.course_lower else ""):
+                        matched_subject = subj
+                        break
                 if (
-                    mentor.course in mentee.interested_subjects
+                    matched_subject is not None
                     and mentor.gender == mentee.gender
                     and mentor.max_students > mentor.current_students
                 ):
                     print(
-                    f"""{mentee.full_name} paired with {mentor.full_name} Mentor does {mentor.course}, mentee interested in {mentee.interested_subjects}
-----------------------------------------------------------------------------"""
+                        f"{mentee.full_name} paired with {mentor.full_name} Mentor does {mentor.course}, mentee interested in {mentee.interested_subjects}\n----------------------------------------------------------------------------"
                     )
+                    mentee.matched_course = matched_subject
                     mentors_mentees.append(mentee)
                     self.mentor_pairings.sort()
                     mentor.current_students += 1
                     return
-            except:
+            except Exception as e:
+                print(f"Error in pairing {mentee.full_name} with {mentor.full_name}: {e}")
                 break
         if mentee.interested_subjects != [""]:
             print(f"{mentee.full_name} could not be paired, \ngender: {mentee.gender}\ncourses: {mentee.interested_subjects}\n----------------------------------------")
