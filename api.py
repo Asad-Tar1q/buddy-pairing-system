@@ -11,8 +11,19 @@ import pandas as pd
 from initial_code.generate_emails import generate_emails
 
 
+
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Or specify your frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods, including OPTIONS
+    allow_headers=["*"],
+)
 
 
 @app.post("/send-emails")
