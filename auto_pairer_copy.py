@@ -15,15 +15,18 @@ def remove_medics(interested_courses):
         if not re.match(medicine_pattern, course.strip(), flags=re.IGNORECASE)
     ])
 
-def get_mentor_mentee_dfs(spreadsheet, mentee_form_name, mentor_form_name):
-    # Load directly from Excel sheets
-    mentee_df = pd.read_excel(spreadsheet, sheet_name=mentee_form_name)
-    mentor_df = pd.read_excel(spreadsheet, sheet_name=mentor_form_name)
+def get_mentor_mentee_dfs(mentors_file, mentees_file):
+    # Load directly from separate Excel files
+    mentor_df = pd.read_excel(mentors_file)
+    mentee_df = pd.read_excel(mentees_file)
+
+    print("Mentor columns after cleaning:", mentor_df.columns.tolist())
+    print("Mentee columns after cleaning:", mentee_df.columns.tolist())
 
     # Clean column names
     mentee_df.columns = [clean_text(col) for col in mentee_df.columns]
     mentor_df.columns = [clean_text(col) for col in mentor_df.columns]
-   
+
     # Remove medical-related mentee interests
     if 'What_are_you_interested_in_studying_at_university_Select_all_that_you_may_be_interested_in' in mentee_df.columns:
         mentee_df['What_are_you_interested_in_studying_at_university_Select_all_that_you_may_be_interested_in'] = (
@@ -33,10 +36,10 @@ def get_mentor_mentee_dfs(spreadsheet, mentee_form_name, mentor_form_name):
     # Remove duplicate mentees by email
     if 'What_is_your_email_address' in mentee_df.columns:
         mentee_df = mentee_df[~mentee_df.duplicated(subset='What_is_your_email_address', keep='first')]
-    
+
     print("Mentee data loaded:", mentee_df.shape)
     print("Mentor data loaded:", mentor_df.shape)
-    
+
     return (mentor_df.dropna(how="all"), mentee_df.dropna(how="all"))
 
 def clean_text(text):
@@ -51,14 +54,23 @@ def make_csvs(mentor_df, mentee_df, from_scratch=True):
     brother_mentees = [mentee_df.columns.tolist()]
     sister_mentees = [mentee_df.columns.tolist()]
 
+    print("First mentor row:", mentor_df.iloc[0].to_dict() if not mentor_df.empty else None)
+    print("First mentee row:", mentee_df.iloc[0].to_dict() if not mentee_df.empty else None)
+
     for row in mentor_df.itertuples():
-        if row.Are_you_a_brother_or_sister == "Brother":
+        print(f"Mentor row: {row}")
+        if hasattr(row, 'Are_you_a_brother_or_a_sister'):
+            print(f"Mentor gender: {row.Are_you_a_brother_or_a_sister}")
+        if getattr(row, 'Are_you_a_brother_or_a_sister', None) == "Brother":
             brother_mentors.append(row)
         else:
             sister_mentors.append(row)
 
     for row in mentee_df.itertuples():
-        if row.Are_you_a_brother_or_sister == "Brother":
+        print(f"Mentee row: {row}")
+        if hasattr(row, 'Are_you_a_brother_or_a_sister'):
+            print(f"Mentee gender: {row.Are_you_a_brother_or_a_sister}")
+        if getattr(row, 'Are_you_a_brother_or_a_sister', None) == "Brother":
             brother_mentees.append(row)
         else:
             sister_mentees.append(row)
@@ -79,15 +91,18 @@ def make_csvs(mentor_df, mentee_df, from_scratch=True):
     pd.DataFrame(sister_mentees).to_csv(os.path.join(folder, "sister_mentees.csv"), index=False, header=False)
 
 if __name__ == "__main__":
-    # Use the actual sheet names
     mentor_df, mentee_df = get_mentor_mentee_dfs(
-        "mentors.xlsx", "mentee_test", "mentor_test"
+        "mentors.xlsx", "mentees.xlsx"
     )
     make_csvs(mentor_df, mentee_df)
 
     mentor_list = MentorList(os.path.join("csvs", "mentors.csv"))
+    print("MentorList loaded. Number of mentors:", len(mentor_list.mentor_pairings))
     for row in mentee_df.itertuples():
         if pd.notna(row):
-            mentor_list.pair_mentee(Mentee(row))
+            mentee = Mentee(row)
+            print(f"Pairing mentee: {mentee.full_name}, gender: {mentee.gender}, interested_subjects: {mentee.interested_subjects}")
+            mentor_list.pair_mentee(mentee)
 
+    print("Pairing complete. Exception students:", [m.full_name for m in mentor_list.exception_students])
     mentor_list.make_mentor_mentee_json()

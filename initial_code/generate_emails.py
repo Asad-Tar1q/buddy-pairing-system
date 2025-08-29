@@ -8,7 +8,7 @@ first_name = lambda ment__: ment__['full_name'].split()[0].strip().capitalize()
 
 def mentor_email(mentor):
     if re.match(r'^[a-zA-Z]{2,}[0-9]{2,}$', mentor['short_code']):
-        return f"{mentor['short_code']}.ic.ac.uk"
+        return f"{mentor['short_code']}@ic.ac.uk"
     elif re.match(r'.*@[ic|imperial].ac.uk$', mentor['short_code']):
         return mentor['short_code']
     else:
@@ -38,40 +38,54 @@ STEM Muslims"""
 
 
 def generate_emails():
+    import pandas as pd
     if os.path.isdir("emails"):
         shutil.rmtree("emails")
 
     os.mkdir("emails")
 
-    with open("mentor_mentee_pairings.json", "r") as f:
-        pairings = json.load(f)
-    
+    # Read pairings from pairings_export.xlsx
+    df = pd.read_excel("pairings_export.xlsx", sheet_name="Pairings")
+
+    # Group by mentor name and short code, year, course
+    grouped = df.groupby(["Mentor Name", "Mentor Short Code", "Mentor Year", "Mentor Course", "Mentor Gender"])
     total_emails = 0
-    for pair in pairings:
-        mentor = pair["mentor"]
-        mentees = pair["mentees"]
-        
-        folder = os.path.join(os.getcwd(),'emails', full_name(mentor).replace(' ', '_'))
+    for (mentor_name, mentor_shortcode, mentor_year, mentor_course, mentor_gender), group in grouped:
+        mentor = {
+            "full_name": str(mentor_name),
+            "short_code": str(mentor_shortcode),
+            "year": str(mentor_year),
+            "course": str(mentor_course),
+            "gender": "Brother" if "brother" in str(mentor_gender).lower() else "Sister" if "sister" in str(mentor_gender).lower() else "N/A"
+        }
+        folder = os.path.join(os.getcwd(), 'emails', full_name(mentor).replace(' ', '_'))
         os.mkdir(folder)
         os.mkdir(os.path.join(folder, "mentees_details"))
 
         with open(os.path.join(folder, f"mentor_details.json"), 'w') as f:
-                json.dump(mentor, f, indent=4)
+            json.dump(mentor, f, indent=4)
 
         he_she = "he" if mentor["gender"] == "Brother" else "she"
         his_her = "his" if mentor["gender"] == "Brother" else "her"
         him_her = "him" if mentor["gender"] == "Brother" else "her"
 
-        for mentee in mentees:
-            with open(os.path.join(folder, f"{full_name(mentor).replace(' ', '_')}_{full_name(mentee).replace(' ', '_')}.txt"), 'w') as f:
+        mentee_notifications = []
+        for _, mentee_row in group.iterrows():
+            mentee = {
+                "full_name": str(mentee_row["Mentee Name"]),
+                "email": str(mentee_row["Mentee Email"])
+            }
+            # Mentee introduction email
+            mentee_email_path = os.path.join(folder, f"{full_name(mentor).replace(' ', '_')}_{full_name(mentee).replace(' ', '_')}.txt")
+            with open(mentee_email_path, 'w') as f:
                 print(f.name)
                 f.write(email_format(mentee, mentor, his_her))
-            
+            # Save mentee details
             with open(os.path.join(folder, 'mentees_details', f"{full_name(mentee).replace(' ', '_')}.json"), 'w') as f:
                 json.dump(mentee, f, indent=4)
-
+            mentee_notifications.append(f"- {mentee['full_name']} ({mentee['email']})")
             total_emails += 1
-
+    # Mentor notification email generation removed as requested
     print(total_emails)
 
 if __name__ == "__main__":
