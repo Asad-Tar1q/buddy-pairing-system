@@ -1,6 +1,5 @@
 /csvs/*
 spreadsheet_id.txt
-*.json
 __pycache__
 backup/
 emails/
