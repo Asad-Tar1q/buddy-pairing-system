@@ -4,7 +4,10 @@ __pycache__
 backup/
 emails/
 myenv/
-
+~$*.xls*
+mentors.xlsx
+mentees.xlsx
+pairings_export.xlsx
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
