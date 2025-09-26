@@ -34,16 +34,37 @@ class Mentee:
         self.phone_number = getattr(row, 'Please_enter_your_phone_number', None)
         self.current_study_place = getattr(row, 'Where_are_you_currently_studying', None)
         self.a_levels = getattr(row, 'What_Alevels_are_you_currently_studying', None)
+        import re
+
         try:
-            raw_subjects = getattr(row, 'What_subjects_courses_are_you_interested_in_studying_at_university', '')
-            # Split on both semicolons and commas
-            import re
-            self.interested_subjects = [item.strip() for item in re.split(r"[;,]", raw_subjects) if item.strip()]
+            raw_subjects = getattr(
+                row, 
+                'What_subjects_are_you_interested_in_studying_at_university', 
+                None
+            )
+
+            if not raw_subjects:  # if first attribute is None/empty, try the other
+                raw_subjects = getattr(
+                    row, 
+                    'What_subjects_/_courses_are_you_interested_in_studying_at_university', 
+                    None
+                )
+
+            if raw_subjects:
+                self.interested_subjects = [
+                    item.strip() 
+                    for item in re.split(r"[;]", raw_subjects) 
+                    if item.strip()
+                ]
+            else:
+                self.interested_subjects = None
+
         except Exception as e:
             print(f"Error parsing interested_subjects for mentee {self.full_name}: {e}")
             self.interested_subjects = None
-        self.why_interested = getattr(row, 'Why_are_you_interested_in_studying_this_subject_field', None)
-        self.areas_of_advice = getattr(row, 'What_areas_of_the_UCAS_process_are_you_looking_for_advice_with', None)
+
+        self.why_interested = getattr(row, 'Why_are_you_interested_in_studying_this_subject_/_field', None)
+        self.areas_of_advice = getattr(row, 'What_areas_of_the_UCAS_process_are_you_looking_for_support_with', None)
         self.considering_imperial = getattr(row, 'Are_you_considering_applying_to_Imperial', None)
 
 
