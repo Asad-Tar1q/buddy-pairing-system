@@ -1,4 +1,4 @@
-# Pairing System
+# Buddy Pairing System (based off the mentor/mentee pairing system)
 
 This project is a mentor-mentee pairing and email automation system with a React/Next.js frontend and a FastAPI backend.
 
